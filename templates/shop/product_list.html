@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Товары — BotaShop{% endblock %}
+{% block page_title %}Товары{% endblock %}
+{% block page_subtitle %}<div class="subtitle">{{ total_count }} активных позиций</div>{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'product_archived_list' %}" class="btn btn-secondary btn-sm">Архив</a>
+  <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    Добавить товар
+  </a>
+{% endblock %}
+
+{% block content %}
+<form method="get" class="toolbar-row">
+  <div class="search-box">
+    <input type="search" name="q" value="{{ q }}" placeholder="Поиск по названию, штрихкоду, артикулу…">
+  </div>
+  <select name="sort" onchange="this.form.submit()">
+    {% for key, opt in sort_options.items %}
+      <option value="{{ key }}" {% if key == sort %}selected{% endif %}>{{ opt.1 }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-secondary btn-sm">Найти</button>
+  {% if q %}<a href="{% url 'product_list' %}" class="btn btn-outline btn-sm">Сбросить</a>{% endif %}
+</form>
+
+{% if page_obj.object_list %}
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th>Штрихкод / Артикул</th>
+          <th>Цена</th>
+          <th>Остаток</th>
+          <th>Создан</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in page_obj.object_list %}
+        <tr>
+          <td>
+            <div class="cell-primary">{{ v.product.name }}</div>
+            <div class="cell-muted">
+              {{ v.product.brand|default:"" }}
+              {% if v.product.brand and v.size %}·{% endif %} {{ v.size }}
+              {% if v.color %}· {{ v.color }}{% endif %}
+              {% if v.product.category %}· {{ v.product.category }}{% endif %}
+            </div>
+          </td>
+          <td class="cell-mono">{{ v.barcode }}{% if v.sku %}<br>{{ v.sku }}{% endif %}</td>
+          <td class="cell-primary">{{ v.selling_price }} ₸</td>
+          <td>
+            {% if v.current_stock > 0 %}
+              <span class="badge badge-success">{{ v.current_stock }}</span>
+            {% else %}
+              <span class="badge badge-neutral">0</span>
+            {% endif %}
+          </td>
+          <td class="cell-muted">{{ v.created_at|date:"d.m.Y" }}</td>
+          <td>
+            <div class="btn-group">
+              <a href="{% url 'print_settings' v.id %}" class="btn btn-outline btn-sm">Печать</a>
+              <a href="{% url 'product_edit' v.id %}" class="btn btn-secondary btn-sm">Изменить</a>
+              <form method="post" action="{% url 'product_archive' v.id %}" data-confirm="Переместить «{{ v.product.name }}» в архив?" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger-ghost btn-sm">Архив</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&sort={{ sort }}">← Назад</a>
+  {% else %}
+    <span class="disabled">← Назад</span>
+  {% endif %}
+  <span class="current">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&sort={{ sort }}">Далее →</a>
+  {% else %}
+    <span class="disabled">Далее →</span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"/><path d="M3 7.5V16l9 4.5 9-4.5V7.5"/></svg>
+    {% if q %}
+      <p>По запросу «{{ q }}» ничего не найдено.</p>
+      <a href="{% url 'product_list' %}" class="btn btn-secondary btn-sm">Сбросить поиск</a>
+    {% else %}
+      <p>Товары не найдены.</p>
+      <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm">Добавить первый товар</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

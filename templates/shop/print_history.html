@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}История печати — BotaShop{% endblock %}
+{% block page_title %}История печати{% endblock %}
+{% block page_subtitle %}<div class="subtitle">{{ page_obj.paginator.count }} записей</div>{% endblock %}
+
+{% block content %}
+<div class="toolbar-row">
+  <div class="filter-pills">
+    <a href="?status=all" class="filter-pill {% if status == 'all' %}active{% endif %}">Все</a>
+    <a href="?status=SUCCESS" class="filter-pill {% if status == 'SUCCESS' %}active{% endif %}">Успешные</a>
+    <a href="?status=FAILED" class="filter-pill {% if status == 'FAILED' %}active{% endif %}">С ошибкой</a>
+  </div>
+</div>
+
+{% if page_obj.object_list %}
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Товар</th>
+          <th>Цена</th>
+          <th>Принтер</th>
+          <th>Размер</th>
+          <th>Копии</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in page_obj.object_list %}
+        <tr>
+          <td class="cell-muted">{{ job.created_at|date:"d.m.Y H:i" }}</td>
+          <td>
+            <div class="cell-primary">{{ job.product_name }}</div>
+            {% if not job.variant %}<div class="cell-muted">Прямая печать</div>{% endif %}
+            {% if job.status == 'FAILED' and job.error_message %}
+              <div class="cell-muted" title="{{ job.error_message }}">{{ job.error_message|truncatechars:60 }}</div>
+            {% endif %}
+          </td>
+          <td>{{ job.price }} ₸</td>
+          <td>{{ job.printer_name|default:"—" }}</td>
+          <td class="cell-mono">{{ job.label_size|default:"—" }}</td>
+          <td>{{ job.copies }}</td>
+          <td>
+            {% if job.status == 'SUCCESS' %}
+              <span class="badge badge-success">Успешно</span>
+            {% else %}
+              <span class="badge badge-danger">Ошибка</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?status={{ status }}&page={{ page_obj.previous_page_number }}">← Назад</a>
+  {% else %}
+    <span class="disabled">← Назад</span>
+  {% endif %}
+  <span class="current">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?status={{ status }}&page={{ page_obj.next_page_number }}">Далее →</a>
+  {% else %}
+    <span class="disabled">Далее →</span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    <p>Записей не найдено.</p>
+    <a href="{% url 'direct_print' %}" class="btn btn-primary btn-sm">Распечатать ценник</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

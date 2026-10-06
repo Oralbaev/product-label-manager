@@ -1,0 +1,68 @@
+{% load static %}<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}BotaShop{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'shop/css/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% with url_name=request.resolver_match.url_name %}
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">B</span>
+        <span>BotaShop</span>
+      </div>
+      <nav>
+        <a class="nav-link {% if url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+          Главная
+        </a>
+        <a class="nav-link {% if url_name in 'product_list,product_edit,product_archived_list' %}active{% endif %}" href="{% url 'product_list' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"/><path d="M3 7.5V16l9 4.5 9-4.5V7.5"/><path d="M12 12v8.5"/></svg>
+          Товары
+        </a>
+        <a class="nav-link {% if url_name == 'product_create' %}active{% endif %}" href="{% url 'product_create' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+          Добавить товар
+        </a>
+        <a class="nav-link {% if url_name == 'direct_print' %}active{% endif %}" href="{% url 'direct_print' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6"/><rect x="6" y="13" width="12" height="8" rx="1"/><path d="M4 9h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 17H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h2"/></svg>
+          Прямая печать
+        </a>
+        <a class="nav-link {% if url_name == 'print_history' %}active{% endif %}" href="{% url 'print_history' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          История печати
+        </a>
+      </nav>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h1>{% block page_title %}BotaShop{% endblock %}</h1>
+          {% block page_subtitle %}{% endblock %}
+        </div>
+        <div class="topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+      </div>
+
+      <main class="content">
+        {% if messages %}
+        <ul class="messages">
+          {% for msg in messages %}
+          <li class="{{ msg.tags }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  {% endwith %}
+
+  <script src="{% static 'shop/js/app.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

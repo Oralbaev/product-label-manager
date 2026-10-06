@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Печать этикетки — BotaShop{% endblock %}
+{% block page_title %}Печать этикетки{% endblock %}
+{% block page_subtitle %}
+<div class="subtitle">{{ variant.product.name }} · Штрихкод: <span class="cell-mono">{{ variant.barcode }}</span></div>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div id="agent-status" class="status-banner status-checking">Проверка соединения с BotaPrint...</div>
+
+<div class="card card-pad form-card">
+  <div class="form-group">
+    <label for="printer-select">Принтер</label>
+    <select id="printer-select">
+      <option value="">Загрузка принтеров...</option>
+    </select>
+    <p class="help-text">Список принтеров загружается из Windows через BotaPrint.</p>
+  </div>
+
+  <div class="form-group">
+    <label for="paper-size">Размер этикетки</label>
+    <select id="paper-size">
+      {% for key, dims in paper_sizes.items %}
+        <option value="{{ key }}" {% if key == default_paper_size %}selected{% endif %}>{{ dims.width_mm }}×{{ dims.height_mm }} мм</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="copies">Количество копий</label>
+    <input type="number" id="copies" min="1" max="100" value="1">
+  </div>
+
+  <div id="print-msg" class="print-msg" style="display:none;"></div>
+
+  <div class="form-actions">
+    <button id="btn-print" class="btn btn-primary">Распечатать</button>
+    <button type="button" class="btn btn-secondary" id="btn-refresh">Обновить список принтеров</button>
+    <a href="{% url 'product_list' %}" class="btn btn-secondary">Назад</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'shop/js/printing.js' %}"></script>
+<script>
+  const submitUrl = "{% url 'print_variant_submit' variant.id %}";
+  const statusEl  = document.getElementById('agent-status');
+  const selectEl  = document.getElementById('printer-select');
+  const msgEl     = document.getElementById('print-msg');
+  const btnEl     = document.getElementById('btn-print');
+
+  document.getElementById('btn-refresh').addEventListener('click', function () {
+    BotaPrintUI.loadPrinters(selectEl);
+  });
+
+  btnEl.addEventListener('click', function () {
+    BotaPrintUI.submitPrint(submitUrl, {
+      printerName: selectEl.value,
+      paperSize: document.getElementById('paper-size').value,
+      copies: document.getElementById('copies').value,
+    }, msgEl, btnEl);
+  });
+
+  (async function () {
+    const ok = await BotaPrintUI.checkHealth(statusEl);
+    if (ok) {
+      await BotaPrintUI.loadPrinters(selectEl);
+    } else {
+      selectEl.innerHTML = '<option value="">BotaPrint не запущен</option>';
+    }
+  })();
+</script>
+{% endblock %}

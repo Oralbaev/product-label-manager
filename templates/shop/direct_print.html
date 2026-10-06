@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Прямая печать — BotaShop{% endblock %}
+{% block page_title %}Прямая печать{% endblock %}
+{% block page_subtitle %}<div class="subtitle">Печать ценника без создания товара в каталоге</div>{% endblock %}
+
+{% block content %}
+{{ form.printer_name.value|default:""|json_script:"dp-selected-printer" }}
+
+<div id="agent-status" class="status-banner status-checking">Проверка соединения с BotaPrint...</div>
+
+<form method="post" class="card card-pad form-card">
+  {% csrf_token %}
+
+  <div class="form-group">
+    <label for="id_product_name">Название товара</label>
+    {{ form.product_name }}
+    {% if form.product_name.errors %}<p class="error-text">{{ form.product_name.errors|join:", " }}</p>{% endif %}
+  </div>
+
+  <div class="form-group">
+    <label for="id_price">Цена</label>
+    {{ form.price }}
+    <p class="help-text">Можно ввести: 12990, 12 990 или 12 990 ₸</p>
+    {% if form.price.errors %}<p class="error-text">{{ form.price.errors|join:", " }}</p>{% endif %}
+  </div>
+
+  <div class="form-group">
+    <label for="printer-select">Принтер</label>
+    <select id="printer-select" name="printer_name">
+      <option value="">Загрузка принтеров...</option>
+    </select>
+    <p class="help-text">Список принтеров загружается из Windows через BotaPrint.</p>
+    {% if form.printer_name.errors %}<p class="error-text">{{ form.printer_name.errors|join:", " }}</p>{% endif %}
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="id_paper_size">Размер ценника</label>
+      {{ form.paper_size }}
+      {% if form.paper_size.errors %}<p class="error-text">{{ form.paper_size.errors|join:", " }}</p>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="id_copies">Количество</label>
+      {{ form.copies }}
+      {% if form.copies.errors %}<p class="error-text">{{ form.copies.errors|join:", " }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" id="btn-print" class="btn btn-primary">Печать</button>
+    <button type="button" class="btn btn-secondary" id="btn-refresh">Обновить список принтеров</button>
+    <a href="{% url 'product_list' %}" class="btn btn-secondary">Назад</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'shop/js/printing.js' %}"></script>
+<script>
+  const statusEl = document.getElementById('agent-status');
+  const selectEl = document.getElementById('printer-select');
+  const preselected = JSON.parse(document.getElementById('dp-selected-printer').textContent);
+
+  document.getElementById('btn-refresh').addEventListener('click', function () {
+    BotaPrintUI.loadPrinters(selectEl, preselected);
+  });
+
+  (async function () {
+    const ok = await BotaPrintUI.checkHealth(statusEl);
+    if (ok) {
+      await BotaPrintUI.loadPrinters(selectEl, preselected);
+    } else {
+      selectEl.innerHTML = '<option value="">BotaPrint не запущен</option>';
+    }
+  })();
+</script>
+{% endblock %}

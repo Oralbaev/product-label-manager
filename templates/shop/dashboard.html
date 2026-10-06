@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Главная — BotaShop{% endblock %}
+{% block page_title %}Главная{% endblock %}
+{% block page_subtitle %}<div class="subtitle">Обзор каталога и печати ценников</div>{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">Товаров в каталоге</div>
+    <div class="stat-value">{{ stats.product_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Активных позиций</div>
+    <div class="stat-value">{{ stats.variant_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Успешных печатей</div>
+    <div class="stat-value">{{ stats.success_count }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Напечатано ценников</div>
+    <div class="stat-value">{{ stats.labels_printed }}</div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{% url 'product_create' %}" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    Добавить товар
+  </a>
+  <a href="{% url 'direct_print' %}" class="btn btn-secondary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="13" width="12" height="8" rx="1"/><path d="M6 9V3h12v6"/></svg>
+    Прямая печать
+  </a>
+  <a href="{% url 'product_list' %}" class="btn btn-secondary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"/></svg>
+    Все товары
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Последние задания печати</h2>
+    <a href="{% url 'print_history' %}" class="btn btn-outline btn-sm">Вся история</a>
+  </div>
+  {% if recent_jobs %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Товар</th>
+          <th>Цена</th>
+          <th>Принтер</th>
+          <th>Размер</th>
+          <th>Копии</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in recent_jobs %}
+        <tr>
+          <td class="cell-muted">{{ job.created_at|date:"d.m.Y H:i" }}</td>
+          <td class="cell-primary">{{ job.product_name }}</td>
+          <td>{{ job.price }} ₸</td>
+          <td>{{ job.printer_name|default:"—" }}</td>
+          <td class="cell-mono">{{ job.label_size|default:"—" }}</td>
+          <td>{{ job.copies }}</td>
+          <td>
+            {% if job.status == 'SUCCESS' %}
+              <span class="badge badge-success">Успешно</span>
+            {% else %}
+              <span class="badge badge-danger">Ошибка</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    <p>Печатей пока не было.</p>
+    <a href="{% url 'direct_print' %}" class="btn btn-primary btn-sm">Распечатать первый ценник</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Изменить товар — BotaShop{% endblock %}
+{% block page_title %}Изменить товар{% endblock %}
+{% block page_subtitle %}<div class="subtitle">Штрихкод: <span class="cell-mono">{{ variant.barcode }}</span> (не редактируется)</div>{% endblock %}
+
+{% block content %}
+<div class="card card-pad form-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="{{ form.product_name.id_for_label }}">{{ form.product_name.label }}</label>
+      {{ form.product_name }}
+      {% if form.product_name.errors %}<p class="error-text">{{ form.product_name.errors.0 }}</p>{% endif %}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+        {{ form.category }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.brand.id_for_label }}">{{ form.brand.label }}</label>
+        {{ form.brand }}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.size.id_for_label }}">{{ form.size.label }}</label>
+        {{ form.size }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.color.id_for_label }}">{{ form.color.label }}</label>
+        {{ form.color }}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.sku.id_for_label }}">{{ form.sku.label }}</label>
+      {{ form.sku }}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.selling_price.id_for_label }}">{{ form.selling_price.label }}</label>
+        {{ form.selling_price }}
+        {% if form.selling_price.errors %}<p class="error-text">{{ form.selling_price.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.purchase_price.id_for_label }}">
+          {{ form.purchase_price.label }} <span class="optional">(необязательно)</span>
+        </label>
+        {{ form.purchase_price }}
+        {% if form.purchase_price.errors %}<p class="error-text">{{ form.purchase_price.errors.0 }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+      <a href="{% url 'product_list' %}" class="btn btn-secondary">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

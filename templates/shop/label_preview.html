@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Предпросмотр этикетки — {{ variant.product.name }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      background: #3a3a3a;
+    }
+
+    /* ── Toolbar ─────────────────────────────────────────────────── */
+    .toolbar {
+      background: #1c2431;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      border-bottom: 2px solid #4ade80;
+    }
+
+    .toolbar .info {
+      flex: 1;
+      font-size: .82rem;
+      color: #aab;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toolbar .info strong {
+      color: #fff;
+      font-size: .88rem;
+    }
+
+    .btn-print {
+      background: #4ade80;
+      color: #052e16;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-print:hover { background: #22c55e; }
+
+    .btn-back {
+      background: transparent;
+      color: #aab;
+      border: 1px solid #445;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: .85rem;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-back:hover { color: #fff; border-color: #778; }
+
+    /* ── PDF frame ───────────────────────────────────────────────── */
+    .pdf-wrapper {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .pdf-wrapper object,
+    .pdf-wrapper iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
+
+    /* Fallback message inside <object> */
+    .pdf-fallback {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      color: #ccc;
+      padding: 32px;
+      text-align: center;
+    }
+    .pdf-fallback a {
+      color: #4ade80;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    /* ── Print media ─────────────────────────────────────────────── */
+    @media print {
+      .toolbar { display: none; }
+      body { background: white; }
+      .pdf-wrapper object,
+      .pdf-wrapper iframe { height: 100vh; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button class="btn-print" onclick="triggerPrint()">🖨 Распечатать</button>
+
+    <span class="info">
+      <strong>{{ variant.product.name }}</strong>
+      &nbsp;·&nbsp; {{ count }} коп.
+      &nbsp;·&nbsp; {{ size }} мм
+    </span>
+
+    <a href="{% url 'print_settings' variant.id %}" class="btn-back">← Назад</a>
+  </div>
+
+  <div class="pdf-wrapper">
+    <!--
+      <object> shows the PDF via the browser's built-in viewer.
+      Fallback is shown if the browser cannot display PDFs inline.
+    -->
+    <object id="pdfObj" data="{{ pdf_url }}" type="application/pdf">
+      <div class="pdf-fallback">
+        <p>Браузер не может отобразить PDF напрямую.</p>
+        <a href="{{ pdf_url }}" target="_blank">Открыть PDF в новой вкладке</a>
+      </div>
+    </object>
+  </div>
+
+  <script>
+    function triggerPrint() {
+      // Try to call print() on the embedded PDF viewer frame.
+      // Works reliably in Chrome and Edge with their built-in PDF viewer.
+      var obj = document.getElementById('pdfObj');
+      try {
+        // Chrome / Edge: the object's contentDocument is the PDF viewer
+        if (obj.contentDocument) {
+          obj.contentDocument.defaultView.print();
+          return;
+        }
+        // Firefox: contentWindow may be available
+        if (obj.contentWindow) {
+          obj.contentWindow.print();
+          return;
+        }
+      } catch (e) { /* cross-origin restriction */ }
+
+      // Universal fallback: print the whole page
+      // (Chrome will still print the embedded PDF correctly in most cases)
+      window.print();
+    }
+
+    // Auto-trigger print dialog once the PDF has loaded
+    document.getElementById('pdfObj').addEventListener('load', function () {
+      // Small delay so the PDF viewer fully renders before printing
+      setTimeout(triggerPrint, 900);
+    });
+  </script>
+
+</body>
+</html>
